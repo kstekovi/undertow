@@ -94,33 +94,32 @@ public class SingleSignOnAuthenticationMechanism implements AuthenticationMechan
         if (cookie != null) {
             final String ssoId = cookie.getValue();
             log.tracef("Found SSO cookie %s", ssoId);
-            try (SingleSignOn sso = this.singleSignOnManager.findSingleSignOn(ssoId)) {
-                if (sso != null) {
-                    if(log.isTraceEnabled()) {
-                        log.tracef("SSO session with ID: %s found.", ssoId);
-                    }
-                    Account verified = getIdentityManager(securityContext).verify(sso.getAccount());
-                    if (verified == null) {
-                        if(log.isTraceEnabled()) {
-                            log.tracef("Account not found. Returning 'not attempted' here.");
-                        }
-                        //we return not attempted here to allow other mechanisms to proceed as normal
-                        return AuthenticationMechanismOutcome.NOT_ATTEMPTED;
-                    }
-                    final Session session = getSession(exchange);
-                    registerSessionIfRequired(sso, session);
-                    securityContext.authenticationComplete(verified, sso.getMechanismName(), false);
-                    securityContext.registerNotificationReceiver(new NotificationReceiver() {
-                        @Override
-                        public void handleNotification(SecurityNotification notification) {
-                            if (notification.getEventType() == SecurityNotification.EventType.LOGGED_OUT) {
-                                singleSignOnManager.removeSingleSignOn(sso);
-                            }
-                        }
-                    });
-                    log.tracef("Authenticated account %s using SSO", verified.getPrincipal().getName());
-                    return AuthenticationMechanismOutcome.AUTHENTICATED;
+            SingleSignOn sso = this.singleSignOnManager.findSingleSignOn(ssoId);
+            if (sso != null) {
+                if (log.isTraceEnabled()) {
+                    log.tracef("SSO session with ID: %s found.", ssoId);
                 }
+                Account verified = getIdentityManager(securityContext).verify(sso.getAccount());
+                if (verified == null) {
+                    if (log.isTraceEnabled()) {
+                        log.tracef("Account not found. Returning 'not attempted' here.");
+                    }
+                    //we return not attempted here to allow other mechanisms to proceed as normal
+                    return AuthenticationMechanismOutcome.NOT_ATTEMPTED;
+                }
+                final Session session = getSession(exchange);
+                registerSessionIfRequired(sso, session);
+                securityContext.authenticationComplete(verified, sso.getMechanismName(), false);
+                securityContext.registerNotificationReceiver(new NotificationReceiver() {
+                    @Override
+                    public void handleNotification(SecurityNotification notification) {
+                        if (notification.getEventType() == SecurityNotification.EventType.LOGGED_OUT) {
+                            singleSignOnManager.removeSingleSignOn(sso);
+                        }
+                    }
+                });
+                log.tracef("Authenticated account %s using SSO", verified.getPrincipal().getName());
+                return AuthenticationMechanismOutcome.AUTHENTICATED;
             }
             clearSsoCookie(exchange);
         }
