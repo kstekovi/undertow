@@ -56,7 +56,7 @@ public class SingleSignOnAuthenticationMechanism implements AuthenticationMechan
     private static final String SSO_SESSION_ATTRIBUTE = SingleSignOnAuthenticationMechanism.class.getName() + ".SSOID";
 
     // Use weak references to prevent memory leaks following undeployment
-    private final Set<SessionManager> seenSessionManagers = Collections.synchronizedSet(Collections.newSetFromMap(new WeakHashMap<SessionManager, Boolean>()));
+    private final Set<SessionManager> seenSessionManagers = Collections.synchronizedSet(Collections.newSetFromMap(new WeakHashMap<>()));
 
     private String cookieName = "JSESSIONIDSSO";
     private boolean httpOnly;
