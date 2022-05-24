@@ -19,7 +19,6 @@
 package io.undertow.security.impl;
 
 import io.undertow.security.api.AuthenticationMechanism;
-import io.undertow.security.api.NotificationReceiver;
 import io.undertow.security.api.SecurityContext;
 import io.undertow.security.api.SecurityNotification;
 import io.undertow.security.idm.Account;
@@ -110,12 +109,9 @@ public class SingleSignOnAuthenticationMechanism implements AuthenticationMechan
                 final Session session = getSession(exchange);
                 registerSessionIfRequired(sso, session);
                 securityContext.authenticationComplete(verified, sso.getMechanismName(), false);
-                securityContext.registerNotificationReceiver(new NotificationReceiver() {
-                    @Override
-                    public void handleNotification(SecurityNotification notification) {
-                        if (notification.getEventType() == SecurityNotification.EventType.LOGGED_OUT) {
-                            singleSignOnManager.removeSingleSignOn(sso);
-                        }
+                securityContext.registerNotificationReceiver(notification -> {
+                    if (notification.getEventType() == SecurityNotification.EventType.LOGGED_OUT) {
+                        singleSignOnManager.removeSingleSignOn(sso);
                     }
                 });
                 log.tracef("Authenticated account %s using SSO", verified.getPrincipal().getName());
